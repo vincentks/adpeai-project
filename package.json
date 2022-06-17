@@ -1,0 +1,15 @@
+{
+  "name": "adpeai-project",
+  "version": "1.0.0",
+  "description": "Get all the transactions of last year's top earner. This means find the employee with the highest sum total of amount within the prior calendar year. Prior calendar year means, if it is currently 2022, we want only to consider transactions in 2021. With last year's top earner's transactions get the transactionIDs where the type is alpha.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app"
+  },
+  "author": "Manoj Radhakrishnan",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2"
+  }
+}

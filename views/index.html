@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ADP Innovation Labs Pre-Interview Assignment</title>
+    <style>
+        .leftPadding {
+            padding-left: 3px;
+        }
+
+        .topMargin {
+            margin-top: 5px;
+        }
+
+        .parent {
+            display: grid;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-left {
+            text-align: left;
+        }
+
+        .emp-table {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="parent">
+        <h1>Find employee with highest sum total amount and submit transactions of type alpha.</h1>
+        <br />
+        <div class="align-center">
+            <label for="years" class="leftPadding">Choose an year:</label>
+
+            <select name="years" id="years" onchange="onYearChange()">
+                <!-- <option value="2022">2022</option> -->
+                <option value="2021">2021</option>
+                <!-- <option value="2020">2020</option>
+                <option value="2019">2019</option> -->
+            </select>
+            <button onclick="onGetTopEarnerClick()">Get Top Earner</button>
+            <button onclick="onSubmitTaskClick()">Submit Task</button>
+            <br />
+            <br />
+            <br />
+            <div>
+                <div id="loader" style="display: none;">
+                    <label>Waiting...</label>
+                </div>
+                <div id="result" style="display: none;">
+                    <div class="align-left">
+                        <label id="lblId" class="leftPadding"></label>
+                    </div>
+                    <div class="align-left">
+                        <label id="lblSumTotal" class="leftPadding"></label>
+                    </div>
+                    <div class="topMargin align-left">
+                        <table id="empList" class="emp-table">
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Employee Name</th>
+                                <th>Employee Type</th>
+                                <th>Transaction ID</th>
+                                <th>Amount</th>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="message" style="display: none;">
+                    <label id="lblMsg" class="leftPadding"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    var topEarner = undefined;
+
+    function clearTableRows() {
+        var empList = document.getElementById('empList');
+        var rowCount = empList.rows.length;
+        for (var i = rowCount - 1; i > 0; i--) {
+            empList.deleteRow(i);
+        }
+    }
+
+    function hideElements() {
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('message').style.display = 'none';
+    }
+
+    function clearVariables() {
+        topEarner = undefined;
+    }
+
+    function onYearChange() {
+        clearTableRows();
+        hideElements();
+        clearVariables();
+    }
+
+    function displayMessage(msg) {
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('message').style.display = 'block';
+        document.getElementById('lblMsg').innerText = msg;
+    }
+
+    function handleError() {
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('lblMsg').innerText = 'Someting went wrong! Please try again later.';
+        document.getElementById('message').style.display = 'block';
+        setLoader(false);
+    }
+
+    function setLoader(value) {
+        value ? document.getElementById('loader').style.display = 'block' : document.getElementById('loader').style.display = 'none';
+    }
+
+    function onGetTopEarnerClick() {
+        onYearChange();
+        const year = document.getElementById("years").value;
+
+        setLoader(true);
+
+        fetch('./api/top-earner/' + year)
+            .then((data) => { return data.json() })
+            .then((result) => {
+                if (result?.status) {
+                    handleError()
+                } else if (result) {
+                    topEarner = result;
+                    let sumTotal = 0;
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('lblId').innerText = `ID: ${result.id}`;
+
+                    if (result?.transactions?.length) {
+                        var table = document.getElementById('empList');
+
+                        result.transactions.forEach((trans) => {
+                            var row = table.insertRow(1);
+                            row.insertCell(0).innerText = trans?.employee?.id;
+                            row.insertCell(1).innerText = trans?.employee?.name;
+                            row.insertCell(2).innerText = trans?.type;
+                            row.insertCell(3).innerText = trans?.transactionID;
+                            row.insertCell(4).innerText = trans?.amount;
+                            table.appendChild(row);
+                            sumTotal += trans?.amount;
+                        });
+                    }
+                    document.getElementById('lblSumTotal').innerText = `Sum Total: ${sumTotal ?? 0}`;
+                } else {
+                    displayMessage('No result found.')
+                }
+                setLoader(false);
+            })
+            .catch(error => handleError());
+    }
+
+    function onSubmitTaskClick() {
+        if (topEarner?.transactions?.length) {
+            const data = {
+                id: topEarner.id,
+                result: topEarner.transactions.map((trans) => { return trans.transactionID })
+            };
+
+            const params = {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+                method: 'POST'
+            };
+
+            clearTableRows();
+            hideElements();
+            setLoader(true);
+
+            fetch('./api/submit-task', params)
+                .then((data) => { return data.json() })
+                .then((result) => {
+                    if (result?.status === 200) {
+                        displayMessage('Success!!');
+                    } else {
+                        displayMessage('Failed to fulfill the request due to an error.');
+                    }
+
+                    setLoader(false);
+                })
+                .catch(error => handleError());
+
+            clearVariables();
+        } else {
+            displayMessage('No transactions to submit.');
+        }
+    }
+</script>
+
+</html>
