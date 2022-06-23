@@ -1,4 +1,5 @@
 const axios = require('axios');
+const data = require('./data');
 
 axios.interceptors.request.use(config => {
     if (config?.method?.toUpperCase() === 'POST') {
@@ -14,6 +15,7 @@ class TaskController {
         try {
             const employees = new Map();
             result = await axios.get('https://interview.adpeai.com/api/v2/get-task')
+            result.data = data;
     
             if (result?.data?.transactions?.length) {
                 /**

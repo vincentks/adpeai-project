@@ -71,6 +71,7 @@
                                 <th>Employee Type</th>
                                 <th>Transaction ID</th>
                                 <th>Amount</th>
+                                <th>Year</th>
                             </tr>
                         </table>
                     </div>
@@ -153,6 +154,7 @@
                             row.insertCell(2).innerText = trans?.type;
                             row.insertCell(3).innerText = trans?.transactionID;
                             row.insertCell(4).innerText = trans?.amount;
+                            row.insertCell(5).innerText = trans?.timeStamp;
                             table.appendChild(row);
                             sumTotal += trans?.amount;
                         });
